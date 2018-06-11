@@ -3,7 +3,7 @@ region: ap
 console_ui: false
 log_level: info
 log_format: json
-log: /home/semara/ngroklog.log
+log: /var/log/ngroklog.log
 tunnels:
   ssh-access:
     addr: 273
