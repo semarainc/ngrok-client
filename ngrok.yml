@@ -1,11 +1,24 @@
 authtoken: 6Cxg6T2VnSLiBuVkuB31w_53X3JxFgEPjRPUraKvHdA
 region: ap
 console_ui: false
+log_level: info
 log_format: json
+log: /home/semara/ngroklog.log
 tunnels:
   ssh-access:
     addr: 273
     proto: tcp
   app-bar:
     addr: 80
+    proto: http
+    bind_tls: true
+    host_header: "localhost"
+  webmin:
+    addr: 10000
+    proto: http
+    bind_tls: true
+    host_header: "localhost"
+  webmin-insect:
+    webmin:
+    addr: 10000
     proto: http

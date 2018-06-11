@@ -4,7 +4,6 @@ import signal,psutil
 import stat,socket
 import os,sys,platform,time
 import pymysql
-from pyvirtualdisplay import Display
 
 launched =0
 connect =0
@@ -12,12 +11,9 @@ connect =0
 db=None
 mydb=None
 
-display = Display(visible=0, size=(800, 600))
-display.start()
-
-def connect_mysql():
+def konek():
 	global db,mydb
-	db = pymysql.connect(host="johnny.heliohost.org",user="semara_semara",password="semara123",db="semara_database_tdc")
+	db = pymysql.connect(host="db4free.net",user="semara",password="semara123",db="tunnelstdc")
 	mydb = db.cursor()
 	connect=1
 
@@ -52,6 +48,7 @@ def req_ngrok():
 				)
 				sql = "REPLACE INTO ip_tunnels(Nama,IP,Port,Protokol) VALUES (%s,%s,%s,%s)"
 				mydb.execute(sql,(data[i]['name'], temp[0],temp[1],data[i]['proto']))
+				db.commit()
 				print("[DEBUG] Tunnels Added To The Database")
 			elif (str(data[i]['proto']) == 'http' or str(data[i]['proto']) == 'https'):
 				temp = are
@@ -68,6 +65,7 @@ def req_ngrok():
 				)
 				sql = "REPLACE INTO ip_tunnels(Nama,IP,Port,Protokol) VALUES (%s,%s,%s,%s)"
 				mydb.execute(sql,(data[i]['name'], temp[0],temp[1],data[i]['proto']))
+				db.commit()
 				print("[DEBUG] Tunnels Added To The Database")
 				#mydb.close()
 				#db.commit()
@@ -78,9 +76,8 @@ def req_ngrok():
 		print('[DEBUG] App Terminated')
 		print(e)
 		mydb.close()
-		db.commit()
+		#db.commit()
 		db.close()
-		display.stop()
 
 def isNgrokRun():
 	if str(platform.system()).lower() =='windows':
@@ -121,10 +118,10 @@ def panggil():
 		print('[INFO] Retrieved OS Info: ',os_system)
 		if os_system.lower() == 'windows':
 			print("[SYSTEM] Windows Detected")
-			command = "ngrok start --all --config=ngrok.yml"
-			ngrok = open("ngrok_cmd_fixed.bat","w")
-			ngrok.write(str(command))
-			ngrok.close()
+			#command = "ngrok start --all --config=ngrok.yml"
+			#ngrok = open("ngrok_cmd_fixed.bat","w")
+			#ngrok.write(str(command))
+			#ngrok.close()
 			os.spawnv(os.P_NOWAIT, "ngrok.exe",["ngrok.exe","start"," --config=ngrok.yml"," --all"])
 			print("[INFO] App Launched")
 		else:
@@ -140,9 +137,8 @@ def panggil():
 	except (KeyboardInterrupt,Exception) as k:
 		print("[INFO] App Stopped,Closing Mysql Connection")
 		mydb.close()
-		db.commit()
+		#db.commit()
 		db.close()
-		display.stop()
 		sys.exit()
 
 def inet_check():
@@ -157,21 +153,22 @@ def inet_check():
 		print("[DEBUG] Terminate The App, Closing Mysql Connection")
 		killit()
 		mydb.close()
-		db.commit()
+		#db.commit()
 		db.close()
-		display.stop()
 		sys.exit()
 
 def inet_verif():
 	while True:
 		if inet_check():
 			break
+#connect_mysql()
 while True:
-	if connect == 0:
-		connect_mysql()
-		connect = 1
+	if connect==1 and inet_check==0:
+		mydb.close()
+		db.close()
 	try:
 		if inet_check() == 1 and launched == 0 and isNgrokRun() == 0 :
+			konek()
 			print("[DEBUG] Launching Ngrok With Current Setting")
 			panggil()
 			launched=1
@@ -190,7 +187,6 @@ while True:
 		print("[DEBUG] App Terminated, Closing Mysql Connection")
 		killit()
 		mydb.close()
-		db.commit()
+		#db.commit()
 		db.close()
-		display.stop()
 		sys.exit()
