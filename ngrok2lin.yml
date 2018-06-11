@@ -1,0 +1,15 @@
+authtoken: 3qqpBiKzBTjHjdnPNDHZ9_89sWU3vt17emDFeV7Pgqj
+region: ap
+console_ui: false
+log_level: info
+log_format: json
+log: /var/log/ngroklog2.log
+tunnels:
+  webmin:
+    addr: 10000
+    proto: http
+    bind_tls: true
+    host_header: "localhost"
+  webmin-insect:
+    addr: 10000
+    proto: http

@@ -52,6 +52,7 @@ def req_ngrok():
 				)
 				sql = "REPLACE INTO ip_tunnels(Nama,IP,Port,Protokol) VALUES (%s,%s,%s,%s)"
 				mydb.execute(sql,(data[i]['name'], temp[0],temp[1],data[i]['proto']))
+				db.commit()
 				print("[DEBUG] Tunnels Added To The Database")
 			elif (str(data[i]['proto']) == 'http' or str(data[i]['proto']) == 'https'):
 				temp = are
@@ -70,7 +71,70 @@ def req_ngrok():
 				mydb.execute(sql,(data[i]['name'], temp[0],temp[1],data[i]['proto']))
 				print("[DEBUG] Tunnels Added To The Database")
 				#mydb.close()
-				#db.commit()
+				db.commit()
+				#db.close()
+		print("[DEBUG]-----Finished Taking The Address-----")
+		print('[DEBUG] Calling The Second Ngrok Request')
+		req_ngrok2()
+	except (KeyboardInterrupt,Exception) as e:
+		print('[DEBUG] App Terminated')
+		print(e)
+		mydb.close()
+		db.commit()
+		db.close()
+		display.stop()
+
+def req_ngrok2():
+	try:
+		req = requests.get('http://localhost:4041/api/tunnels'
+			,headers={"Content-Type": "text/json"}
+			)
+		print('[DEBUG] Requests Status [%s]'% (req.status_code))
+		data = req.json()['tunnels']
+		#mydb.execute("TRUNCATE TABLE ip_tunnels") #clear all records --> i dont need to clear the table -,- 
+		#print('[Cleaned] All Records In Remote Database Cleared')
+		for i in range(len(data)):
+			#temp =''
+			are = str(data[i]['public_url'])
+			are = are.split('://')
+			#print(are)
+			if ('tcp' == str(data[i]['proto'])):
+				temp = are
+				link_temp = str(temp[1])
+				#print('Link temp tcp: ',link_temp)
+				del temp
+				temp = link_temp.split(':')
+				#print(temp)
+				#print(temp)
+				print('[Tunnels Info]\n \
+					Name: %s\n \
+					Address: %s\n \
+					Port: %s\n \
+					Protokol: %s\n-------------------------------------------' \
+					% (data[i]['name'], temp[0],temp[1],data[i]['proto'])
+				)
+				sql = "REPLACE INTO ip_tunnels(Nama,IP,Port,Protokol) VALUES (%s,%s,%s,%s)"
+				mydb.execute(sql,(data[i]['name'], temp[0],temp[1],data[i]['proto']))
+				db.commit()
+				print("[DEBUG] Tunnels Added To The Database")
+			elif (str(data[i]['proto']) == 'http' or str(data[i]['proto']) == 'https'):
+				temp = are
+				#print("Detected HTTP")
+				del temp[0]
+				temp.append("80")
+				#print(temp)
+				print('[Tunnels Info]\n \
+					Name: %s\n \
+					Address: %s\n \
+					Port: %s\n \
+					Protokol: %s\n---------------------' \
+					% (data[i]['name'], temp[0],temp[1],data[i]['proto'])
+				)
+				sql = "REPLACE INTO ip_tunnels(Nama,IP,Port,Protokol) VALUES (%s,%s,%s,%s)"
+				mydb.execute(sql,(data[i]['name'], temp[0],temp[1],data[i]['proto']))
+				print("[DEBUG] Tunnels Added To The Database")
+				#mydb.close()
+				db.commit()
 				#db.close()
 		print("[DEBUG]-----Finished Taking The Address-----")
 		print('[DEBUG] Address Saved To Remote Database')
@@ -122,10 +186,11 @@ def panggil():
 		if os_system.lower() == 'windows':
 			print("[SYSTEM] Windows Detected")
 			command = "ngrok start --all --config=ngrok.yml"
-			ngrok = open("ngrok_cmd_fixed.bat","w")
-			ngrok.write(str(command))
-			ngrok.close()
-			os.spawnv(os.P_NOWAIT, "ngrok.exe",["ngrok.exe","start"," --config=ngrok.yml"," --all"])
+			#ngrok = open("ngrok_cmd_fixed.bat","w")
+			#ngrok.write(str(command))
+			#ngrok.close()
+			os.spawnv(os.P_NOWAIT, "ngrok.exe",["ngrok.exe","start"," --config=ngrok.yml"," --all"]) #i have two account :p
+			os.spawnv(os.P_NOWAIT, "ngrok.exe",["ngrok.exe","start"," --config=ngrok2.yml"," --all"])
 			print("[INFO] App Launched")
 		else:
 			#command = "ngrok start --all --config=ngrok.yml"
@@ -135,7 +200,8 @@ def panggil():
 			#st = os.stat('ngrok_cmd')
 			#print(st)
 			#os.chmod('ngrok_cmd_fixed', st.st_mode | stat.S_IEXEC)
-			os.spawnv(os.P_NOWAIT, "ngrok",["ngrok","start","--all","--config","ngrok.yml"])
+			os.spawnv(os.P_NOWAIT, "ngrok",["ngrok","start","--all","--config","ngroklin.yml"]) #i have two account :p
+			os.spawnv(os.P_NOWAIT, "ngrok",["ngrok","start","--all","--config","ngrok2lin.yml"])
 			print("[INFO] App Launched")
 	except (KeyboardInterrupt,Exception) as k:
 		print("[INFO] App Stopped,Closing Mysql Connection")
